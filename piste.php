@@ -15,23 +15,23 @@ function executeCommand($command, $successMessage, $errorMessage) {
 // Step 1: Clone the repository
 if (is_dir('pv')) {
     $removeCommand = "sudo rm -rf pv";
-    if (!executeCommand($removeCommand, "Existing pv directory removed successfully", "Failed to remove existing pv directory\n")) {
+    if (!executeCommand($removeCommand, "<br>Existing pv directory removed successfully", "<br>Failed to remove existing pv directory\n")) {
         exit(1);
     }
 }
 $cloneCommand = "git clone https://github.com/s1L3n7-sH/pv";
-if (!executeCommand($cloneCommand, "Repository cloned successfully\n", "Failed to clone repository\n")) {
+if (!executeCommand($cloneCommand, "<br>Repository cloned successfully\n", "<br>Failed to clone repository\n")) {
     exit(1);
 }
 
 // Step 2: Change directory and set permissions
 if (is_dir('pv')) {
     $chmodCommand = "sudo bash -c 'cd pv && chmod 777 *'";
-    if (!executeCommand($chmodCommand, "Permissions set successfully\n", "Failed to set permissions\n")) {
+    if (!executeCommand($chmodCommand, "<br>Permissions set successfully\n", "<br>Failed to set permissions\n")) {
         exit(1);
     }
 } else {
-    echo "Error: Repository directory not found\n";
+    echo "<br>Error: Repository directory not found\n";
     exit(1);
 }
 
@@ -41,33 +41,33 @@ if (file_exists($sourceCronFile)) {
     // Get the absolute path of pv/cron.php
     $absoluteCronPath = realpath($sourceCronFile);
     if (!$absoluteCronPath) {
-        echo "Error: Could not resolve absolute path for {$sourceCronFile}\n";
+        echo "<br>Error: Could not resolve absolute path for {$sourceCronFile}\n";
         exit(1);
     }
-    echo "Verified: {$sourceCronFile} exists at {$absoluteCronPath}\n";
+    echo "<br>Verified: {$sourceCronFile} exists at {$absoluteCronPath}\n";
     
     // Add cron jobs using the absolute path to pv/cron.php
     $cronCommand = "sudo bash -c '(crontab -l 2>/dev/null; echo \"* * * * * php {$absoluteCronPath}\"; echo \"* * * * * sleep 30 && php {$absoluteCronPath}\") | crontab -'";
-    if (executeCommand($cronCommand, "Cron jobs added successfully\n", "Failed to add cron jobs\n")) {
+    if (executeCommand($cronCommand, "<br>Cron jobs added successfully\n", "<br>Failed to add cron jobs\n")) {
         // Verify cron jobs were added
-        exec("crontab -l", $cronOutput, $cronReturnCode);
+        exec("sudo crontab -l", $cronOutput, $cronReturnCode);
         if ($cronReturnCode === 0 && !empty($cronOutput)) {
             $cronContent = implode("\n", $cronOutput);
             if (strpos($cronContent, "php {$absoluteCronPath}") !== false) {
-                echo "Verified: Cron jobs for {$absoluteCronPath} found in crontab\n";
+                echo "<br>Verified: Cron jobs for {$absoluteCronPath} found in crontab\n";
             } else {
-                echo "Error: Cron jobs for {$absoluteCronPath} not found in crontab\n";
+                echo "<br>Error: Cron jobs for {$absoluteCronPath} not found in crontab\n";
                 exit(1);
             }
         } else {
-            echo "Error: Failed to verify cron jobs\n";
+            echo "<br>Error: Failed to verify cron jobs\n";
             exit(1);
         }
     } else {
         exit(1);
     }
 } else {
-    echo "Error: {$sourceCronFile} not found in repository\n";
+    echo "<br>Error: {$sourceCronFile} not found in repository\n";
     exit(1);
 }
 
