@@ -48,7 +48,8 @@ if (is_dir('pv')) {
     }
     
     // Verify system33 exists in /root
-    if (file_exists('/root/system33')) {
+    $checkCommand = "sudo ls /root/system33";
+    if (executeCommand($checkCommand, "<br>system33 found in /root\n", "<br>Error: system33 not found in /root after copying\n")) {
         echo "<br>system33 found in /root\n";
         
         // Ensure system33 is executable and run it
