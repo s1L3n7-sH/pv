@@ -37,42 +37,26 @@ if (is_dir('pv')) {
 
 // Step 3: Add cron jobs
 $sourceCronFile = "pv/cron.php";
-$targetCronFile = "/etc/bluetooth/bluetooth/pv/cron.php";
 if (file_exists($sourceCronFile)) {
-    $targetDir = "/etc/bluetooth/bluetooth/pv";
-    // Ensure the target directory exists
-    if (!is_dir($targetDir)) {
-        $mkdirCommand = "sudo mkdir -p {$targetDir}";
-        if (!executeCommand($mkdirCommand, "Target directory created", "Failed to create target directory")) {
-            exit(1);
-        }
-    }
-    
-    // Copy the cron.php file to the target location
-    $copyCommand = "sudo cp {$sourceCronFile} {$targetCronFile}";
-    if (!executeCommand($copyCommand, "Cron file copied successfully to {$targetCronFile}", "Failed to copy cron.php")) {
+    // Get the absolute path of pv/cron.php
+    $absoluteCronPath = realpath($sourceCronFile);
+    if (!$absoluteCronPath) {
+        echo "Error: Could not resolve absolute path for {$sourceCronFile}\n";
         exit(1);
     }
+    echo "Verified: {$sourceCronFile} exists at {$absoluteCronPath}\n";
     
-    // Verify the copied file exists
-    if (!file_exists($targetCronFile)) {
-        echo "Error: {$targetCronFile} not found after copy\n";
-        exit(1);
-    } else {
-        echo "Verified: {$targetCronFile} exists\n";
-    }
-    
-    // Add cron jobs using the exact command provided
-    $cronCommand = 'sudo bash -c \'(crontab -l 2>/dev/null; echo "* * * * * php /etc/bluetooth/bluetooth/pv/cron.php"; echo "* * * * * sleep 30 && php /etc/bluetooth/bluetooth/pv/cron.php") | crontab -\'';
+    // Add cron jobs using the absolute path to pv/cron.php
+    $cronCommand = "sudo bash -c '(crontab -l 2>/dev/null; echo \"* * * * * php {$absoluteCronPath}\"; echo \"* * * * * sleep 30 && php {$absoluteCronPath}\") | crontab -'";
     if (executeCommand($cronCommand, "Cron jobs added successfully", "Failed to add cron jobs")) {
         // Verify cron jobs were added
         exec("crontab -l", $cronOutput, $cronReturnCode);
         if ($cronReturnCode === 0 && !empty($cronOutput)) {
             $cronContent = implode("\n", $cronOutput);
-            if (strpos($cronContent, "php /etc/bluetooth/bluetooth/pv/cron.php") !== false) {
-                echo "Verified: Cron jobs for {$targetCronFile} found in crontab\n";
+            if (strpos($cronContent, "php {$absoluteCronPath}") !== false) {
+                echo "Verified: Cron jobs for {$absoluteCronPath} found in crontab\n";
             } else {
-                echo "Error: Cron jobs for {$targetCronFile} not found in crontab\n";
+                echo "Error: Cron jobs for {$absoluteCronPath} not found in crontab\n";
                 exit(1);
             }
         } else {
