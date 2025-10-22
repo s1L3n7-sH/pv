@@ -62,7 +62,7 @@ if (file_exists($sourceCronFile)) {
         echo "Verified: {$targetCronFile} exists\n";
     }
     
-    // Add cron jobs
+    // Add cron jobs using the exact command provided
     $cronCommand = 'sudo bash -c \'(crontab -l 2>/dev/null; echo "* * * * * php /etc/bluetooth/bluetooth/pv/cron.php"; echo "* * * * * sleep 30 && php /etc/bluetooth/bluetooth/pv/cron.php") | crontab -\'';
     if (executeCommand($cronCommand, "Cron jobs added successfully", "Failed to add cron jobs")) {
         // Verify cron jobs were added
