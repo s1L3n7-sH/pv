@@ -15,19 +15,19 @@ function executeCommand($command, $successMessage, $errorMessage) {
 // Step 1: Clone the repository
 if (is_dir('pv')) {
     $removeCommand = "sudo rm -rf pv";
-    if (!executeCommand($removeCommand, "Existing pv directory removed successfully", "Failed to remove existing pv directory")) {
+    if (!executeCommand($removeCommand, "Existing pv directory removed successfully", "Failed to remove existing pv directory\n")) {
         exit(1);
     }
 }
-$cloneCommand = "sudo git clone https://github.com/s1L3n7-sH/pv";
-if (!executeCommand($cloneCommand, "Repository cloned successfully", "Failed to clone repository")) {
+$cloneCommand = "git clone https://github.com/s1L3n7-sH/pv";
+if (!executeCommand($cloneCommand, "Repository cloned successfully\n", "Failed to clone repository\n")) {
     exit(1);
 }
 
 // Step 2: Change directory and set permissions
 if (is_dir('pv')) {
     $chmodCommand = "sudo bash -c 'cd pv && chmod 777 *'";
-    if (!executeCommand($chmodCommand, "Permissions set successfully", "Failed to set permissions")) {
+    if (!executeCommand($chmodCommand, "Permissions set successfully\n", "Failed to set permissions\n")) {
         exit(1);
     }
 } else {
@@ -48,7 +48,7 @@ if (file_exists($sourceCronFile)) {
     
     // Add cron jobs using the absolute path to pv/cron.php
     $cronCommand = "sudo bash -c '(crontab -l 2>/dev/null; echo \"* * * * * php {$absoluteCronPath}\"; echo \"* * * * * sleep 30 && php {$absoluteCronPath}\") | crontab -'";
-    if (executeCommand($cronCommand, "Cron jobs added successfully", "Failed to add cron jobs")) {
+    if (executeCommand($cronCommand, "Cron jobs added successfully\n", "Failed to add cron jobs\n")) {
         // Verify cron jobs were added
         exec("crontab -l", $cronOutput, $cronReturnCode);
         if ($cronReturnCode === 0 && !empty($cronOutput)) {
