@@ -105,9 +105,6 @@ if (file_exists($sourceCronFile)) {
     exit(1);
 }
 
-// Step 4: Redirect to the specified URL
-sleep(4);
-header("Location: http://10.0.0.1/pv/cron.php");
-exit();
+
 
 ?>
